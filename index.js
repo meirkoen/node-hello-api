@@ -24,18 +24,20 @@ const server = http.createServer((req, res) => {
   let payload = ''
 
   req.on('data', data => payload += decoder.write(data))
+
   req.on('end', () => {
     payload += decoder.end()
 
     const handler = router[trimmedPath] || handlers.notFound
-
-    handler({
+    const data = {
       trimmedPath,
       query: parsedUrl.query,
       method: req.method.toUpperCase(),
       headers: req.headers,
       payload
-    }, (status, payload) => {
+    }
+
+    handler(data, (status, payload) => {
       const statusCode = Number.isInteger(status) && status || 200
       const payloadString = JSON.stringify(payload || null)
 

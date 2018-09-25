@@ -38,6 +38,7 @@ const server = http.createServer((req, res) => {
       const statusCode = Number.isInteger(status) && status || 200
       const payloadString = JSON.stringify(payload || null)
 
+      res.setHeader('Content-Type', 'application/json')
       res.writeHead(status)
       res.end(payloadString)
 

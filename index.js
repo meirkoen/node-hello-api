@@ -1,6 +1,8 @@
 const http = require('http')
+const https = require('https')
 const url = require('url')
 const StringDecoder = require('string_decoder').StringDecoder
+const fs = require('fs')
 const config = require('./config')
 
 const decoder = new StringDecoder('utf-8')
@@ -18,7 +20,7 @@ const router = {
   'hello': handlers.hello
 }
 
-const server = http.createServer((req, res) => {
+const generalServer = (req, res) => {
   const parsedUrl = url.parse(req.url, true)
   const trimmedPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '')
   let payload = ''
@@ -47,10 +49,14 @@ const server = http.createServer((req, res) => {
 
       console.log(`response: ${statusCode}, ${payloadString}`)
     })
-
   })
-})
+}
 
-server.listen(config.port, () => {
-  console.log(`The server is listeninig on port ${config.port} in ${config.envName} mode`)
-})
+const httpServer = http.createServer(generalServer)
+const httpsServer = https.createServer({
+  key: fs.readFileSync('./https/key.pem'),
+  cert: fs.readFileSync('./https/cert.pem')
+}, generalServer)
+
+httpsServer.listen(config.httpsPort, () => console.log(`Listening on port ${config.httpsPort}`))
+httpServer.listen(config.httpPort, () => console.log(`Listening on port ${config.httpPort}`))

@@ -4,6 +4,19 @@ const StringDecoder = require('string_decoder').StringDecoder
 
 const decoder = new StringDecoder('utf-8')
 
+const handlers = {
+  hello(data, callback) {
+    callback(200, 'Welcome!')
+  },
+  notFound(data, callback) {
+    callback(404)
+  }
+}
+
+const router = {
+  'hello': handlers.hello
+}
+
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true)
   const trimmedPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '')
@@ -13,13 +26,24 @@ const server = http.createServer((req, res) => {
   req.on('end', () => {
     payload += decoder.end()
 
-    res.end(`
-      Request recived on path: ${trimmedPath}
-      with method: ${req.method.toUpperCase()}
-      and with these query string parameters: ${JSON.stringify(parsedUrl.query)}
-      and with these headers: ${JSON.stringify(req.headers)}
-      and with this payload; ${payload}
-      `)
+    const handler = router[trimmedPath] || handlers.notFound
+
+    handler({
+      trimmedPath,
+      query: parsedUrl.query,
+      method: req.method.toUpperCase(),
+      headers: req.headers,
+      payload
+    }, (status, payload) => {
+      const statusCode = Number.isInteger(status) && status || 200
+      const payloadString = JSON.stringify(payload || null)
+
+      res.writeHead(status)
+      res.end(payloadString)
+
+      console.log(`response: ${statusCode}, ${payloadString}`)
+    })
+
   })
 })
 

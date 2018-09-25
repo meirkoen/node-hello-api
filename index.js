@@ -11,13 +11,17 @@ const handlers = {
   hello(data, callback) {
     callback(200, 'Welcome!')
   },
+  ping(data, callback) {
+    callback(200)
+  },
   notFound(data, callback) {
     callback(404)
-  }
+  },
 }
 
 const router = {
-  'hello': handlers.hello
+  hello: handlers.hello,
+  ping: handlers.ping,
 }
 
 const generalServer = (req, res) => {
@@ -36,12 +40,12 @@ const generalServer = (req, res) => {
       query: parsedUrl.query,
       method: req.method.toUpperCase(),
       headers: req.headers,
-      payload
+      payload,
     }
 
     handler(data, (status, payload) => {
       const statusCode = Number.isInteger(status) && status || 200
-      const payloadString = JSON.stringify(payload || null)
+      const payloadString = JSON.stringify(payload || {})
 
       res.setHeader('Content-Type', 'application/json')
       res.writeHead(status)
@@ -55,7 +59,7 @@ const generalServer = (req, res) => {
 const httpServer = http.createServer(generalServer)
 const httpsServer = https.createServer({
   key: fs.readFileSync('./https/key.pem'),
-  cert: fs.readFileSync('./https/cert.pem')
+  cert: fs.readFileSync('./https/cert.pem'),
 }, generalServer)
 
 httpsServer.listen(config.httpsPort, () => console.log(`Listening on port ${config.httpsPort}`))

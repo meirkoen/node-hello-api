@@ -1,6 +1,7 @@
 const http = require('http')
 const url = require('url')
 const StringDecoder = require('string_decoder').StringDecoder
+const config = require('./config')
 
 const decoder = new StringDecoder('utf-8')
 
@@ -48,6 +49,6 @@ const server = http.createServer((req, res) => {
   })
 })
 
-server.listen(3000, () => {
-  console.log('The server is listeninig on port 3000 now')
+server.listen(config.port, () => {
+  console.log(`The server is listeninig on port ${config.port} in ${config.envName} mode`)
 })
